@@ -1,0 +1,31 @@
+MINHA ROTINA — PRIMEIRA VERSÃO PWA
+
+O QUE JÁ FUNCIONA
+- Criar, listar, concluir e excluir tarefas.
+- Filtrar tarefas por dia.
+- Guardar os dados localmente neste navegador/aparelho.
+- Instalar como PWA quando publicada em hospedagem HTTPS.
+- Cache básico para abrir a interface offline depois da primeira visita.
+- Pedir permissão e exibir notificações enquanto o app/página está aberto.
+
+IMPORTANTE SOBRE NOTIFICAÇÕES
+Esta primeira versão NÃO consegue garantir lembretes programados quando o navegador/app está totalmente fechado ou o Android suspende o processo. O temporizador JavaScript só verifica tarefas enquanto a página está ativa. Notificações push confiáveis em segundo plano exigem um serviço push/backend (por exemplo Firebase Cloud Messaging) e configuração adicional. Não prometa alarmes offline com o app fechado nesta versão.
+
+COMO TESTAR NO COMPUTADOR
+1. Publique a pasta em uma hospedagem HTTPS que sirva arquivos estáticos (ex.: GitHub Pages ou Netlify).
+2. Abra a URL no Chrome.
+3. Permita notificações.
+4. Crie uma tarefa para alguns minutos à frente e deixe a página aberta.
+
+COMO INSTALAR NO ANDROID
+1. Abra a URL HTTPS publicada no Chrome do Android.
+2. Menu ⋮ > Instalar app (ou Adicionar à tela inicial).
+3. Confirme a instalação.
+4. Abra o app e toque em "Ativar avisos"; permita notificações.
+5. Nas configurações do Android, confira se as notificações do Chrome/app estão permitidas.
+
+DADOS
+As tarefas são armazenadas no localStorage do navegador. Nesta versão elas não sincronizam automaticamente entre aparelhos nem com Google Planilhas. Limpar os dados do navegador pode apagar as tarefas. Faça backup antes de limpar os dados.
+
+PERSONALIZAÇÃO
+A versão atual usa armazenamento local, sem login e sem servidor.

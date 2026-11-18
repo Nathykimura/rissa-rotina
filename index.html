@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08b8c8">
+  <meta name="description" content="Sua rotina, tarefas e lembretes em um só lugar.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+  <title>Minha Rotina</title>
+</head>
+<body>
+  <header class="top">
+    <div class="brand"><span class="brand-icon">✓</span><div><h1>Minha Rotina</h1><p>Um passo de cada vez.</p></div></div>
+    <button id="notifyBtn" class="outline">Ativar avisos</button>
+  </header>
+  <main>
+    <section class="welcome">
+      <div><p class="eyebrow" id="todayLabel">SUA ROTINA</p><h2 id="greeting">Olá! ✨</h2><p>Organize seu dia no seu ritmo.</p></div>
+      <div class="progress-ring"><strong id="progressPct">0%</strong><span>feito hoje</span></div>
+    </section>
+
+    <section class="stats">
+      <article><span>📋</span><strong id="totalCount">0</strong><small>Tarefas</small></article>
+      <article><span>✅</span><strong id="doneCount">0</strong><small>Concluídas</small></article>
+      <article><span>⏰</span><strong id="nextCount">—</strong><small>Próxima tarefa</small></article>
+    </section>
+
+    <section class="panel">
+      <div class="section-head"><div><p class="eyebrow">SEU DIA</p><h3>Lista de tarefas</h3></div><input id="dayPicker" type="date" aria-label="Escolher dia"></div>
+      <div id="taskList" class="task-list"><p class="empty">Nenhuma tarefa por aqui. Adicione a primeira! 🌱</p></div>
+    </section>
+
+    <section class="panel add-panel">
+      <p class="eyebrow">NOVO COMPROMISSO</p><h3>Adicionar tarefa</h3>
+      <form id="taskForm">
+        <label>O que você precisa fazer?<input id="taskTitle" maxlength="90" placeholder="Ex.: Estudar Português" required></label>
+        <div class="form-row">
+          <label>Data<input id="taskDate" type="date" required></label>
+          <label>Horário<input id="taskTime" type="time" required></label>
+        </div>
+        <div class="form-row">
+          <label>Categoria<select id="taskCategory"><option>Estudos</option><option>Casa</option><option>Pessoal</option><option>Saúde</option><option>Lazer</option><option>Trabalho</option><option>Outro</option></select></label>
+          <label>Avisar antes<select id="taskLead"><option value="0">No horário</option><option value="5">5 minutos</option><option value="10" selected>10 minutos</option><option value="15">15 minutos</option><option value="30">30 minutos</option></select></label>
+        </div>
+        <button class="primary" type="submit">＋ Salvar tarefa</button>
+      </form>
+    </section>
+
+    <section class="hint"><span>💡</span><p><strong>Dica:</strong> seus dados ficam salvos neste aparelho. Instale o app pela opção “Adicionar à tela inicial” do Chrome para abrir como aplicativo.</p></section>
+  </main>
+  <footer>Feito para cuidar da sua rotina, sem cobrança. 🩵</footer>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

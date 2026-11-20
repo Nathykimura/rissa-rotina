@@ -1,62 +1,57 @@
-const $ = id => document.getElementById(id);
-const STORAGE_KEY = "minha-rotina-tasks-v1";
-let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-let notified = new Set();
-const today = new Date();
-const localDate = d => { const x=new Date(d.getTime()-d.getTimezoneOffset()*60000); return x.toISOString().slice(0,10); };
-$("todayLabel").textContent = today.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"}).toUpperCase();
-$("greeting").textContent = (today.getHours()<12?"Bom dia":today.getHours()<18?"Boa tarde":"Boa noite")+"! ✨";
-$("dayPicker").value = localDate(today);
-$("taskDate").value = localDate(today);
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getFirestore, collection, query, where, getDocs, addDoc, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(tasks));render();}
-function toast(msg){$("toast").textContent=msg;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2600);}
+const firebaseConfig = {
+  apiKey: "AIzaSyBnQIuZ_ifTHDbGoqm_QyZ6gVaUEex4W_s",
+  authDomain: "minha-rotina-355cc.firebaseapp.com",
+  projectId: "minha-rotina-355cc",
+  storageBucket: "minha-rotina-355cc.firebasestorage.app",
+  messagingSenderId: "166306568283",
+  appId: "1:166306568283:web:3f226c855be35dd75d877e",
+  measurementId: "G-CWRLFCLVP7"
+};
+const firebaseApp=initializeApp(firebaseConfig), auth=getAuth(firebaseApp), db=getFirestore(firebaseApp);
+const $=id=>document.getElementById(id);
+let plannerId=null, tasks=[], stopTasks=null, currentUser=null;
+const localDate=d=>{const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10)};
+const today=localDate(new Date()); $("dayPicker").value=today; $("taskDate").value=today;
+function toast(s){$("toast").textContent=s;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2600)}
+function authMessage(s){$("authMessage").textContent=s}
+$("loginForm").addEventListener("submit",async e=>{e.preventDefault();authMessage("Entrando...");try{await signInWithEmailAndPassword(auth,$("email").value.trim(),$("password").value)}catch(err){authMessage("Não foi possível entrar. Confira e-mail e senha. ("+err.code+")")}});
+$("logoutBtn").addEventListener("click",()=>signOut(auth));
+onAuthStateChanged(auth,async user=>{
+ currentUser=user;
+ if(stopTasks){stopTasks();stopTasks=null}
+ if(!user){$("authPanel").classList.remove("hidden");$("appPanel").classList.add("hidden");$("logoutBtn").classList.add("hidden");return}
+ $("authPanel").classList.add("hidden");$("appPanel").classList.remove("hidden");$("logoutBtn").classList.remove("hidden");
+ $("greeting").textContent="Olá! ✨";$("syncState").textContent="...";
+ try{await loadPlanner(user.uid)}catch(err){console.error(err);$("roleLabel").textContent="Não foi possível abrir a rotina. Verifique as regras e os dados do Firestore.";$("syncState").textContent="Erro";toast("Erro ao carregar o espaço compartilhado.")}
+});
+async function loadPlanner(uid){
+ const own=await getDocs(query(collection(db,"shared_planners"),where("ownerUid","==",uid)));
+ let docs=own.docs;
+ if(!docs.length){const shared=await getDocs(query(collection(db,"shared_planners"),where("editorUids","array-contains",uid)));docs=shared.docs}
+ if(!docs.length){$("roleLabel").textContent="Sua conta ainda não está vinculada a um espaço compartilhado.";throw new Error("planner-not-found")}
+ if(docs.length>1){$("roleLabel").textContent="Sua conta está em mais de um espaço. Peça ajuda para selecionar a rotina correta.";throw new Error("multiple-planners")}
+ const p=docs[0];plannerId=p.id;const data=p.data();
+ $("roleLabel").textContent=(data.ownerUid===uid?"Você é a proprietária":"Você é administradora")+" · "+(data.name||"Rotina compartilhada");
+ $("syncState").textContent="Online";
+ stopTasks=onSnapshot(collection(db,"shared_planners",plannerId,"tasks"),snap=>{tasks=snap.docs.map(d=>({id:d.id,...d.data()}));$("syncState").textContent="Online";render()},err=>{$("syncState").textContent="Erro";console.error(err);toast("Falha na sincronização.")});
+}
 function render(){
- const day=$("dayPicker").value;
- const list=tasks.filter(t=>t.date===day).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
- $("taskList").innerHTML="";
- if(!list.length){$("taskList").innerHTML='<p class="empty">Nenhuma tarefa por aqui. Adicione a primeira! 🌱</p>';}
- list.forEach(t=>{
-  const el=document.createElement("div");el.className="task"+(t.done?" done":"");
-  const check=document.createElement("input");check.type="checkbox";check.checked=t.done;check.setAttribute("aria-label","Concluir "+t.title);
-  check.addEventListener("change",()=>{t.done=check.checked;save();});
-  const main=document.createElement("div");main.className="task-main";
-  const title=document.createElement("div");title.className="task-title";title.textContent=t.title;
-  const meta=document.createElement("div");meta.className="meta";meta.textContent=`${t.time} · ${t.category} · Aviso ${t.lead===0?"no horário":t.lead+" min antes"}`;
-  main.append(title,meta);
-  const del=document.createElement("button");del.className="delete";del.textContent="Excluir";del.addEventListener("click",()=>{tasks=tasks.filter(x=>x.id!==t.id);save();toast("Tarefa excluída.");});
-  el.append(check,main,del);$("taskList").append(el);
- });
- const done=list.filter(t=>t.done).length;
- $("totalCount").textContent=list.length;$("doneCount").textContent=done;
- $("progressPct").textContent=(list.length?Math.round(done/list.length*100):0)+"%";
- const next=list.find(t=>!t.done && new Date(`${t.date}T${t.time}:00`)>new Date());
- $("nextCount").textContent=next?next.time:"—";
+ const day=$("dayPicker").value, list=tasks.filter(t=>t.date===day).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+ const root=$("taskList");root.replaceChildren();
+ if(!list.length){const p=document.createElement("p");p.className="empty";p.textContent="Nenhuma tarefa por aqui. Adicione a primeira! 🌱";root.append(p)}
+ for(const t of list){const el=document.createElement("div");el.className="task"+(t.done?" done":"");
+ const check=document.createElement("input");check.type="checkbox";check.checked=!!t.done;check.setAttribute("aria-label","Concluir "+t.title);check.addEventListener("change",()=>updateDoc(doc(db,"shared_planners",plannerId,"tasks",t.id),{done:check.checked,updatedAt:serverTimestamp()}));
+ const main=document.createElement("div");main.className="task-main";const title=document.createElement("div");title.className="task-title";title.textContent=t.title;
+ const meta=document.createElement("div");meta.className="meta";meta.textContent=(t.time||"")+(t.endTime?"–"+t.endTime:"")+" · "+(t.category||"Outro");main.append(title,meta);
+ const del=document.createElement("button");del.className="delete";del.textContent="Excluir";del.addEventListener("click",async()=>{if(confirm("Excluir esta tarefa para as duas contas?")){await deleteDoc(doc(db,"shared_planners",plannerId,"tasks",t.id));toast("Tarefa excluída.")}});
+ el.append(check,main,del);root.append(el)}
+ const done=list.filter(t=>t.done).length;$("totalCount").textContent=list.length;$("doneCount").textContent=done;$("progressPct").textContent=(list.length?Math.round(done/list.length*100):0)+"%";
 }
 $("dayPicker").addEventListener("change",render);
-$("taskForm").addEventListener("submit",e=>{
- e.preventDefault();
- const task={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),title:$("taskTitle").value.trim(),date:$("taskDate").value,time:$("taskTime").value,category:$("taskCategory").value,lead:Number($("taskLead").value),done:false};
- if(!task.title||!task.date||!task.time)return;
- tasks.push(task);$("dayPicker").value=task.date;$("taskTitle").value="";save();toast("Tarefa salva neste aparelho! 🩵");
-});
-$("notifyBtn").addEventListener("click",async()=>{
- if(!("Notification" in window)){toast("Este navegador não oferece notificações.");return;}
- const permission=await Notification.requestPermission();
- if(permission==="granted"){toast("Permissão ativada! Deixe o app aberto para os lembretes desta versão.");new Notification("Minha Rotina",{body:"Avisos ativados neste aparelho. 🩵",icon:"icon-192.png"});}
- else toast("Permissão não concedida. Ative nas configurações do navegador.");
-});
-function checkReminders(){
- if(!("Notification" in window)||Notification.permission!=="granted")return;
- const now=Date.now();
- tasks.filter(t=>!t.done).forEach(t=>{
-  const due=new Date(`${t.date}T${t.time}:00`).getTime()-t.lead*60000;
-  const key=t.id+"-"+t.date;
-  if(due<=now && due>now-60000 && !notified.has(key)){
-   new Notification("Lembrete: "+t.title,{body:`Está na hora da sua tarefa (${t.time}).`,icon:"icon-192.png",tag:key});
-   notified.add(key);
-  }
- });
-}
-if("serviceWorker" in navigator && location.protocol!=="file:"){navigator.serviceWorker.register("./sw.js").catch(()=>{});}
-render();checkReminders();setInterval(checkReminders,15000);
+$("taskForm").addEventListener("submit",async e=>{e.preventDefault();if(!plannerId)return;const task={title:$("taskTitle").value.trim(),date:$("taskDate").value,time:$("taskTime").value,endTime:$("taskEnd").value||"",category:$("taskCategory").value,done:false,createdBy:currentUser.uid,createdAt:serverTimestamp(),updatedAt:serverTimestamp()};
+ if(!task.title||!task.date||!task.time)return;try{await addDoc(collection(db,"shared_planners",plannerId,"tasks"),task);$("dayPicker").value=task.date;$("taskTitle").value="";$("taskEnd").value="";toast("Tarefa compartilhada salva! 🩵")}catch(err){console.error(err);toast("Não foi possível salvar. Confira as regras do Firestore.")}});
+if("serviceWorker" in navigator && location.protocol!=="file:")navigator.serviceWorker.register("./sw.js").catch(console.error);

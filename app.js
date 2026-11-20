@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import { getFirestore, collection, query, where, getDocs, addDoc, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { getFirestore, collection, getDoc, addDoc, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBnQIuZ_ifTHDbGoqm_QyZ6gVaUEex4W_s",
@@ -29,13 +29,15 @@ onAuthStateChanged(auth,async user=>{
  try{await loadPlanner(user.uid)}catch(err){console.error(err);$("roleLabel").textContent="Não foi possível abrir a rotina. Verifique as regras e os dados do Firestore.";$("syncState").textContent="Erro";toast("Erro ao carregar o espaço compartilhado.")}
 });
 async function loadPlanner(uid){
- const own=await getDocs(query(collection(db,"shared_planners"),where("ownerUid","==",uid)));
- let docs=own.docs;
- if(!docs.length){const shared=await getDocs(query(collection(db,"shared_planners"),where("editorUids","array-contains",uid)));docs=shared.docs}
- if(!docs.length){$("roleLabel").textContent="Sua conta ainda não está vinculada a um espaço compartilhado.";throw new Error("planner-not-found")}
- if(docs.length>1){$("roleLabel").textContent="Sua conta está em mais de um espaço. Peça ajuda para selecionar a rotina correta.";throw new Error("multiple-planners")}
- const p=docs[0];plannerId=p.id;const data=p.data();
- $("roleLabel").textContent=(data.ownerUid===uid?"Você é a proprietária":"Você é administradora")+" · "+(data.name||"Rotina compartilhada");
+ const plannerRef=doc(db,"shared_planners","rotina-da-amiga");
+ const p=await getDoc(plannerRef);
+ if(!p.exists()){ $("roleLabel").textContent="O espaço compartilhado ainda não foi encontrado."; throw new Error("planner-not-found") }
+ const data=p.data();
+ const isOwner=data.ownerUid===uid;
+ const isEditor=Array.isArray(data.editorUids)&&data.editorUids.includes(uid);
+ if(!isOwner&&!isEditor){$("roleLabel").textContent="Esta conta não tem acesso a este espaço.";throw new Error("not-a-member")}
+ plannerId=p.id;
+ $("roleLabel").textContent=(isOwner?"Você é a proprietária":"Você é administradora")+" · "+(data.name||"Rotina compartilhada");
  $("syncState").textContent="Online";
  stopTasks=onSnapshot(collection(db,"shared_planners",plannerId,"tasks"),snap=>{tasks=snap.docs.map(d=>({id:d.id,...d.data()}));$("syncState").textContent="Online";render()},err=>{$("syncState").textContent="Erro";console.error(err);toast("Falha na sincronização.")});
 }

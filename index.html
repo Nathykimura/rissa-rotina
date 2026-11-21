@@ -1,1 +1,53 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#12b8c8"><meta name="description" content="Planejador semanal compartilhado Minha Rotina"><title>Minha Rotina</title><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png"><link rel="stylesheet" href="style.css"></head><body><main class="app"><header class="top"><div><p class="eyebrow">SEU ESPAÇO, SEU RITMO</p><h1>Minha Rotina <span>✦</span></h1><p class="sub">Um passo de cada vez. Sua semana do seu jeito.</p></div><div class="top-actions"><div class="today-pill" id="todayLabel">Hoje</div><button id="logoutBtn" class="soft-btn hidden" type="button">Sair</button></div></header><section id="authPanel" class="auth-card"><p class="eyebrow">ESPAÇO COMPARTILHADO</p><h2>Entre na sua rotina 🩵</h2><p class="sub">Use o e-mail e a senha cadastrados no Firebase.</p><form id="loginForm"><label>E-mail<input id="email" type="email" autocomplete="username" required placeholder="seu@email.com"></label><label>Senha<input id="password" type="password" autocomplete="current-password" required placeholder="Sua senha"></label><button class="primary-btn" type="submit">Entrar</button></form><p id="authMessage" class="message" role="status"></p></section><div id="appPanel" class="hidden"><section class="account-strip"><span id="welcomeLabel">Olá!</span><span id="roleLabel">Carregando...</span></section><section class="week-card"><div class="section-head"><div><p class="eyebrow">PLANEJAMENTO SEMANAL</p><h2>Organize sua semana</h2></div><button class="soft-btn" id="copyDayBtn" type="button">Copiar dia anterior</button></div><div class="days" id="dayTabs" role="tablist" aria-label="Dias da semana"></div><div class="progress-wrap"><div class="progress-label"><span>Progresso do dia</span><strong id="progressText">0%</strong></div><div class="progress"><div id="progressBar"></div></div></div></section><section class="content-grid"><section class="list-card"><div class="section-head"><div><p class="eyebrow" id="selectedDayLabel">ROTINA DE HOJE</p><h2 id="dayHeading">Atividades</h2></div><span class="count" id="taskCount">0 atividades</span></div><div id="activityList" class="activity-list"></div><div id="emptyState" class="empty" hidden><div class="empty-icon">☁</div><h3>Dia em branco por enquanto</h3><p>Adicione suas atividades ou copie a rotina de outro dia.</p></div></section><aside class="form-card"><p class="eyebrow">NOVO COMPROMISSO</p><h2>Adicionar atividade</h2><form id="activityForm"><label>O que você vai fazer?<input id="title" maxlength="70" placeholder="Ex.: Estudar, descansar..." required></label><div class="two"><label>Começa<input id="start" type="time" value="08:30" required></label><label>Termina<input id="end" type="time" value="09:00" required></label></div><label>Categoria<select id="category"><option value="Pessoal">Pessoal</option><option value="Estudos">Estudos</option><option value="Treino">Treino</option><option value="Alimentação">Alimentação</option><option value="Descanso">Descanso</option><option value="Lazer">Lazer</option><option value="Outro">Outro</option></select></label><button class="primary-btn" type="submit">＋ Adicionar à semana</button></form><p class="hint">As atividades ficam salvas na nuvem e aparecem para as duas contas. Você pode editar a semana em conjunto.</p></aside></section><section class="push-card"><div><p class="eyebrow">LEMBRETES NO CELULAR</p><h2>Notificações</h2><p id="pushHelp" class="sub">A proprietária pode ativar as notificações neste aparelho.</p></div><button id="enablePushBtn" class="primary-btn" type="button">Ativar notificações</button></section></div></main><footer>Feito para acompanhar você, não para cobrar perfeição. 🩵</footer><div id="toast" class="toast" role="status" aria-live="polite"></div><script type="module" src="app.js"></script></body></html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#12b8c8"><meta name="description" content="Planejador semanal compartilhado Minha Rotina">
+<link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="style.css">
+<title>Minha Rotina</title>
+</head>
+<body>
+<section id="authPanel" class="panel auth-panel">
+<p class="eyebrow">SEU ESPAÇO, SEU RITMO</p><h1>Minha Rotina <span>✦</span></h1><h2>Entre na sua rotina 🩵</h2>
+<p class="muted">Use sua conta cadastrada no Firebase.</p>
+<form id="loginForm">
+<label>E-mail<input id="email" type="email" autocomplete="username" required placeholder="seu@email.com"></label>
+<label>Senha<input id="password" type="password" autocomplete="current-password" required></label>
+<button class="primary-btn" type="submit">Entrar</button>
+</form><p id="authMessage" class="message" role="status"></p>
+</section>
+<div id="appPanel" class="hidden">
+<div class="account-bar"><span id="accountLabel">Conectando...</span><button id="logoutBtn" class="soft-btn" type="button">Sair</button></div>
+<main class="app">
+<header class="top">
+<div><p class="eyebrow">SEU ESPAÇO, SEU RITMO</p><h1>Minha Rotina <span>✦</span></h1><p class="sub">Um passo de cada vez. Sua semana do seu jeito.</p></div>
+<div class="today-pill" id="todayLabel">Hoje</div>
+</header>
+<section class="week-card">
+<div class="section-head"><div><p class="eyebrow">PLANEJAMENTO SEMANAL</p><h2>Organize sua semana</h2></div><button class="soft-btn" id="copyDayBtn" type="button">Copiar dia anterior</button></div>
+<div class="days" id="dayTabs" role="tablist" aria-label="Dias da semana"></div>
+<div class="progress-wrap"><div class="progress-label"><span>Progresso do dia</span><strong id="progressText">0%</strong></div><div class="progress"><div id="progressBar"></div></div></div>
+</section>
+<section class="content-grid">
+<section class="list-card">
+<div class="section-head"><div><p class="eyebrow" id="selectedDayLabel">ROTINA DE HOJE</p><h2 id="dayHeading">Atividades</h2></div><span class="count" id="taskCount">0 atividades</span></div>
+<div id="activityList" class="activity-list"></div>
+<div id="emptyState" class="empty" hidden><div class="empty-icon">☁</div><h3>Dia em branco por enquanto</h3><p>Adicione suas atividades ou copie a rotina de outro dia.</p></div>
+</section>
+<aside class="form-card">
+<p class="eyebrow">NOVO COMPROMISSO</p><h2>Adicionar atividade</h2>
+<form id="activityForm">
+<label>O que você vai fazer?<input id="title" maxlength="70" placeholder="Ex.: Estudar, descansar..." required></label>
+<div class="two"><label>Começa<input id="start" type="time" value="08:30" required></label><label>Termina<input id="end" type="time" value="09:00" required></label></div>
+<label>Categoria<select id="category"><option value="Pessoal">Pessoal</option><option value="Estudos">Estudos</option><option value="Treino">Treino</option><option value="Alimentação">Alimentação</option><option value="Descanso">Descanso</option><option value="Lazer">Lazer</option><option value="Outro">Outro</option></select></label>
+<label class="check-line"><input id="reminder" type="checkbox"> Avisar no horário (com o app aberto)</label>
+<button class="primary-btn" type="submit">＋ Adicionar à semana</button>
+</form><p class="hint">Planeje cada dia e copie a rotina anterior quando quiser. As alterações ficam compartilhadas entre as duas contas.</p>
+</aside>
+</section>
+<footer><span>Feito para acompanhar você, não para cobrar perfeição. 🩵</span><div><button id="notifyBtn" class="text-btn" type="button">Ativar notificações</button></div></footer>
+</main>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script type="module" src="app.js"></script>
+</body></html>
